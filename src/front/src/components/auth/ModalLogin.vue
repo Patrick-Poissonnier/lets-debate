@@ -44,8 +44,6 @@
 </template>
 
 <script>
-import axios from "@/lib/myAxios"
-
 export default {
   name: "modal-login",
   data() {
@@ -61,25 +59,25 @@ export default {
   },
   methods: {
     validatePseudo() {
-      this.pseudoOk = this.pseudo.length > 2
+      this.pseudoOk = this.pseudo.length > 2;
       this.pseudoError =
-        this.pseudoOk || "Le pseudo doit comorter au moins 3 caractères"
+        this.pseudoOk || "Le pseudo doit comorter au moins 3 caractères";
     },
 
     validatePwd1() {
-      this.pwd1Ok = this.pwd1.length > 2
+      this.pwd1Ok = this.pwd1.length > 2;
       this.pwd1Error =
-        this.pwd1Ok || "Le mot de passe doit comorter au moins 3 caractères"
+        this.pwd1Ok || "Le mot de passe doit comorter au moins 3 caractères";
     },
 
     resetModal() {
-      this.pseudo = ""
-      this.pwd1 = ""
-      this.pseudoOk = null
-      this.pwd1Ok = null
-      this.pseudoError = ""
-      this.pwd1Error = ""
-      this.stayConnected = ""
+      this.pseudo = "";
+      this.pwd1 = "";
+      this.pseudoOk = null;
+      this.pwd1Ok = null;
+      this.pseudoError = "";
+      this.pwd1Error = "";
+      this.stayConnected = "";
     },
 
     handleOk(bvModalEvt) {
@@ -87,34 +85,26 @@ export default {
       this.handleSubmit();
     },
 
-    handleSubmit() {
-      if( !(this.pseudoOk && this.pwd1Ok)) {
+    async handleSubmit() {
+      if (!(this.pseudoOk && this.pwd1Ok)) {
         return;
       }
-
-      axios
-        .post("user/login/", { pseudo: this.pseudo, password: this.pwd1, persist: this.stayConnected })
-        .then((response) => {
-          if( typeof response.data === "object") {
-//            Object.assign( response.data, jwtDecode( response.data.userAccess))
-            this.$store.dispatch("login", response.data)
-            
-            this.$nextTick(() => {
-              this.$bvModal.hide("modal-login")
-            })
-          } else {
-            if( response.data === "pseudo") {
-              this.pseudoError = "L'utilisateur n'existe pas"
-              this.pseudoOk = false
-            } else if( response.data === "password") {
-              this.pwd1Error = "Le mot de passe est incorecte"
-              this.pwd1Ok = false
-            } 
-          }
-        })
-        .catch((error) => {
-          console.log(error.message || error.toString())
+      const response = await this.$store.dispatch("login", {
+        pseudo: this.pseudo,
+        password: this.pwd1,
+        persist: this.stayConnected,
+      });
+      if (typeof response === "object") {
+        this.$nextTick(() => {
+          this.$bvModal.hide("modal-login");
         });
+      } else if (response === "pseudo") {
+        this.pseudoError = "L'utilisateur n'existe pas";
+        this.pseudoOk = false;
+      } else if (response === "password") {
+        this.pwd1Error = "Le mot de passe est incorecte";
+        this.pwd1Ok = false;
+      }
     },
   },
 };

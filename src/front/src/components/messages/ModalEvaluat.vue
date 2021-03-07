@@ -70,7 +70,7 @@
 
 <script>
 import { evaluatChoice, reportChoice } from "@/config/evaluat";
-import libMessage from "@/lib/libMessage";
+import libMessage from "@/DAL/libMessage";
 
 export default {
   name: "ModalEvaluat",

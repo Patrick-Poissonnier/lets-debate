@@ -1,5 +1,6 @@
 import Vue from 'vue'
-import libMessage from '@/lib/libMessage'
+import libMessage from '@/DAL/libMessage'
+import libUser from '@/DAL/libUser'
 
 const nullChilds = function () {
   return {
@@ -61,13 +62,13 @@ const debate = {
   actions: {
     loadDebate({ dispatch, commit, state, rootGetters }, id) {
       //      console.log( 'loadDebate '+ id)
-      if (state.readerPseudo !== rootGetters.getconnectedUser.pseudo
+      if (state.readerPseudo !== rootGetters.getConnectedUser.pseudo
         || !state.message
         || state.message.id !== id) {
-        //        console.log( 'loadDebate : update '+ id)
+        console.log('loadDebate : update ' + id)
         libMessage.getMessage(id)
           .then(message => {
-            commit('_initDebate', { message, pseudo: rootGetters.getconnectedUser.pseudo })
+            commit('_initDebate', { message, pseudo: rootGetters.getConnectedUser.pseudo })
             dispatch('_loadChilds')
             dispatch('_loadAncestors')
           })
@@ -111,7 +112,7 @@ const debate = {
       const elt = state.authors[pseudo]
       if (typeof elt !== "object") {
         commit('_newAuthor', pseudo)
-        libMessage.getAuthor(pseudo)
+        libUser.get(pseudo)
           .then(author => {
             commit('_updateAuthor', author)
           })
