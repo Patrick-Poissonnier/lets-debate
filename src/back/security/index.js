@@ -5,7 +5,7 @@ const checkJWT = function (req, res, next) {
   const userAccess = req.headers.useraccess
   const signature = req.cookies && req.cookies.signature
 
-//  let token = ''
+  //  let token = ''
   let connectedUser
   if (!userAccess && !signature) {
     connectedUser = {
@@ -19,17 +19,17 @@ const checkJWT = function (req, res, next) {
       connectedUser = jwt.verify(token, config.JWTsecret)
     } catch (err) {
       console.log('invalid token ')
-      const cookiesOptions = { 
-        domain: 'localhost', 
+      const cookiesOptions = {
+        domain: config.domain,
         httpOnly: true,
         maxAge: 0,
-       }
+      }
       res.cookie('signature', '', cookiesOptions)
-      return res.status(403).send( 'invalid token!')
+      return res.status(403).send('invalid token!')
     }
   }
   req.connectedUser = connectedUser
-//  res.accessToken = token
+  //  res.accessToken = token
   next()
 }
 

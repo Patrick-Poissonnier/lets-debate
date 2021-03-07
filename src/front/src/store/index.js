@@ -30,25 +30,21 @@ export default new Vuex.Store({
   },
 
   actions: {
-    async initStore({ dispatch, commit, getters }, url) {
+    async initStore({ commit, getters }, url) {
       await libMessage.init(window.indexedDB)
       const userAccess = sessionStorage.getItem("userData")
         || localStorage.getItem("userData")
 
       if (userAccess) {
         commit('_setUserAccess', userAccess)     //for myAxios.interceptors.request
-        console.log(getters.getConnectedUser)
         const response = await libUser.resumeConnection()
-        console.log(response)
         if (typeof response === "object") {
-          dispatch('_setConnectedUser', response)
+          commit('_setConnectedUser', response)
         } else {
-          console.log('logout')
-          dispatch('logout')
+          commit('_logout')
         }
       } else {
-        console.log('logout')
-        dispatch('logout')
+        commit('_logout')
       }
 
       let component = url.pathname.substring(1)
@@ -56,8 +52,13 @@ export default new Vuex.Store({
       if (component) {
         props = JSON.parse(decodeURI(url.search.substring(1)))
       } else {
-        component = 'Debate'
-        props = { id: getters.getConnectedUser.pseudo ? 2 : 1 }
+        if (getters.getConnectedUser.pseudo) {
+          component = 'Debate'
+          props = { id: 2 }
+        } else {
+          component = 'Home'
+          props = {}
+        }
       }
       commit('setMainPage', { component, props })
     },

@@ -65,7 +65,7 @@ const debate = {
       if (state.readerPseudo !== rootGetters.getConnectedUser.pseudo
         || !state.message
         || state.message.id !== id) {
-        console.log('loadDebate : update ' + id)
+        //        console.log('loadDebate : update ' + id)
         libMessage.getMessage(id)
           .then(message => {
             commit('_initDebate', { message, pseudo: rootGetters.getConnectedUser.pseudo })

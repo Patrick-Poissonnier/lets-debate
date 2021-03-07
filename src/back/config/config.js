@@ -1,5 +1,6 @@
 module.exports = {
   corsOrigin: 'http://localhost:8080',
+  domain: 'localhost',
   ...require('./secret'),
   dbBatchSort: {    // convert cpu load <=> disque space
     ttlSort: 'PT24H',    // min duration for node (:Sort). In neo4j format 

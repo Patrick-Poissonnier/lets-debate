@@ -1,7 +1,8 @@
 .DS_Store
 node_modules
 /dist
-
+/public/Avatar/*.jpeg
+/private/p5*
 
 # local env files
 .env.local

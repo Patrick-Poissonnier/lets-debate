@@ -14,7 +14,7 @@ myAxios.interceptors.request.use(
     if (userAccess) {
       request.headers = { 'useraccess': userAccess }
     }
-    console.log(request)
+    //    console.log(request)
     return request
   }, error => {
     console.log(error)

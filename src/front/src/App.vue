@@ -10,6 +10,7 @@
 
 <script>
 import Header from "@/components/Header.vue";
+import Home from "@/components/Home.vue";
 import UserInfo from "@/components/user/UserInfo.vue";
 import Message from "@/components/messages/Message.vue";
 import ListMessage from "@/components/messages/ListMessage.vue";
@@ -35,6 +36,7 @@ export default {
   },
   components: {
     Header,
+    Home,
     UserInfo,
     Register,
     Message,
@@ -53,7 +55,7 @@ export default {
   },
 
   mounted: function () {
-    window.onpopstate = this.navControl;
+    window.onpopstate = this.historyBack;
     this.$store.dispatch("initStore", window.location);
   },
 
@@ -74,7 +76,7 @@ export default {
         this.$bvModal.show("WriteMessage");
       });
     },
-    navControl: function (event) {
+    historyBack: function (event) {
       this.$store.commit("historyBack", event.state);
     },
   },

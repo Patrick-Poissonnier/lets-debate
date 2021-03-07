@@ -1,4 +1,3 @@
-//import Vue from 'vue'
 import libUser from '@/DAL/libUser'
 import libMessage from '@/DAL/libMessage'
 
@@ -27,33 +26,19 @@ const user = {
   },
 
   actions: {
-    async login({ dispatch }, data) {
+    async login({ commit }, data) {
       const response = await libUser.login(data)
-
-      //      console.log(response)
       if (typeof response === 'object') {
-        dispatch('_setConnectedUser', response)
-
-        sessionStorage.setItem("userData", response.userAccess);
-        if (data.persist) {
-          localStorage.setItem("userData", response.userAccess);
-        } else {
-          localStorage.removeItem("userData");
-        }
-      } else {
-        dispatch('logout')
+        commit('_setConnectedUser', response)
       }
       return response
     },
 
-    async newUser({ commit, dispatch }, data) {
+    async newUser({ commit }, data) {
       const response = await libUser.register(data)
       if (response && response.userAccess) {
-        dispatch('_setConnectedUser', response)
-
+        commit('_setConnectedUser', response)
         commit('setMainPage', { component: 'UserInfo', props: { pseudo: response.user.pseudo } })
-      } else {
-        dispatch('logout')
       }
       return response
     },
@@ -61,35 +46,30 @@ const user = {
     async updateUser({ commit }, data) {
       const response = await libUser.update(data)
       if (typeof response === 'object') {
-        commit('_setConnectedUser', response)
+        commit('_updateUser', response)
       }
       return response
     },
     async newAvatar({ commit }, data) {
       const response = await libUser.newAvatar(data)
-      console.log(response)
-      alert("newAvatar");
       if (typeof response === 'object') {
-        //commit('_setConnectedUser', response)
+        commit('_updateUser', response)
       }
+      return response
     },
 
     async logout({ commit }) {
       await libUser.logout()
-      commit('logout')
+      commit('_logout')
     },
-
-    _setConnectedUser({ commit }, data) {
-      libMessage.setReader(data.user.pseudo)
-      commit('_setConnectedUser', data)
-    }
   },
 
   mutations: {
-    updateUser(state, user) {
+    _updateUser(state, user) {
       state.connectedUser.user = user
     },
     _setConnectedUser(state, data) {
+      libMessage.setReader(data.user.pseudo)
       sessionStorage.setItem("userData", data.userAccess);
       if (data.persist) {
         localStorage.setItem('userData', data.userAccess);
@@ -101,7 +81,7 @@ const user = {
     _setUserAccess(state, userAccess) {
       state.connectedUser = Object.assign({}, nullUser, { userAccess })
     },
-    logout(state) {
+    _logout(state) {
       localStorage.removeItem('userData')
       sessionStorage.removeItem('userData')
       libMessage.setReader('')

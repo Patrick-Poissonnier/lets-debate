@@ -5,7 +5,7 @@
         <PublicInfo :user="userInfo" />
       </b-tab>
       <b-tab v-if="userInfo.private" title="privé">
-        <PrivateInfo :user="userInfo" @updateUser="updateUser" />
+        <PrivateInfo :user="userInfo" @changedUser="changedUser" />
       </b-tab>
       <!--    <b-tab v-if="userInfo.modo" title="modérarion" >
       <AdminUser :user="userInfo"/>
@@ -35,14 +35,14 @@ export default {
   },
   created: async function () {
     if (this.pseudo === this.$store.getters.getConnectedUser.pseudo) {
-      this.userInfo = this.$store.getters.getConnectedUser;
+      this.userInfo = Object.assign({}, this.$store.getters.getConnectedUser);
     } else {
-      alert("userinfo: get");
       this.userInfo = await libUser.get(this.pseudo);
     }
   },
   methods: {
-    updateUser(user) {
+    changedUser(user) {
+      //      console.log("changedUser");
       this.userInfo = user;
     },
   },

@@ -1,7 +1,7 @@
 const { User } = require('../../db_api')
 
 const sanitizeHtml = require('sanitize-html')
-const { configSanitzeHtml} = require( '../../config/sanitizeParam')
+const { configSanitzeHtml } = require('../../config/sanitizeParam')
 const jwt = require('jsonwebtoken')
 const config = require('../../config/config')
 
@@ -26,8 +26,8 @@ exports.signup = async (req, res) => {
     return res.status(400).send('pseudo incorect')
   }
   try {
-    const result = await User.create( user)
-    if( user) {
+    const result = await User.create(user)
+    if (user) {
       _sendResponse(res, result, persist)
     } else {
       return res.status(200).send('pseudo')
@@ -40,18 +40,18 @@ exports.signup = async (req, res) => {
 exports.update = async (req, res) => {
   console.log(`update : ${req.connectedUser.pseudo}`)
   const { email, password, presentation } = req.body
-  if( !email && !password && !presentation ){
+  if (!email && !password && !presentation) {
     return res.status(400).send('Requête invalide')
   }
 
-  const user = { priv: {}}
-  if( email) {
+  const user = { priv: {} }
+  if (email) {
     user.priv.email = email
   }
-  if( password) {
+  if (password) {
     user.priv.password = password
   }
-  if( presentation) {
+  if (presentation) {
     user.presentation = sanitizeHtml(presentation, configSanitzeHtml)
   }
 
@@ -61,7 +61,7 @@ exports.update = async (req, res) => {
 
   try {
     const result = await User.update(req.connectedUser, user)
-    res.status(200).send( result)
+    res.status(200).send(result)
   } catch (err) {
     return res.status(400).send(err)
   }
@@ -103,8 +103,8 @@ exports.logout = async (req, res) => {
   _sendResponse(res)
 }
 
-function _sendResponse (res, user, persist) {
-  const cookiesOptions = { domain: 'localhost', httpOnly: true }
+function _sendResponse(res, user, persist) {
+  const cookiesOptions = { domain: config.domain, httpOnly: true }
   let dataCookie = ''
   let data = {}
 
@@ -127,10 +127,10 @@ function _sendResponse (res, user, persist) {
   return res.status(200).send(data)
 }
 
-function getToken (user) {
+function getToken(user) {
   return jwt.sign({
     pseudo: user.pseudo,
-//    id: user.id,
+    //    id: user.id,
     auth: user.auth
   }, config.JWTsecret
   )

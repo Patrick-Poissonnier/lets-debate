@@ -27,39 +27,47 @@
       </div>
       <div>
         <b-button variant="outline-primary" @click="updateRegisterData">
-          modifier ma presentation
+          modifier mes données privées
+        </b-button>
+      </div>
+      <div>
+        <b-button variant="outline-primary" @click="changePresentation = true">
+          modifier ma présentation
         </b-button>
       </div>
     </div>
     <div v-if="changeAvatar">
       <b-form-file
-        v-model="file"
-        :state="Boolean(file)"
+        v-model="AvatarFile"
+        :state="Boolean(AvatarFile)"
         placeholder="selectionnez un fichier ou glissez le ici"
         drop-placeholder="copiez le ici"
         accept="image/jpeg, image/png"
         @input="loadAvatar"
       ></b-form-file>
       <canvas ref="preview" height="128" width="128"></canvas>
-      <b-button v-if="file" @click="saveAvatar"> valider </b-button>
+      <b-button :disabled="!AvatarFile" @click="saveAvatar"> valider </b-button>
+      <b-button @click="changeAvatar = false"> annuler </b-button>
     </div>
-    <div class="my-toolbar" />
-    <TinyEditor
-      @onChange="changed = true"
-      v-model="userInfo.presentation"
-      :value="userInfo.presentation"
-      placeholder="votre presentation"
-      ref="presentation"
-    />
-    <b-button :disabled="!changed" @click="saveText"> enregister </b-button>
+    <div v-if="changePresentation">
+      <div class="my-toolbar" />
+      <TinyEditor
+        @onChange="changedPresentation = true"
+        v-model="userInfo.presentation"
+        :value="userInfo.presentation"
+        placeholder="votre presentation"
+        ref="presentation"
+      />
+      <b-button :disabled="!changedPresentation" @click="saveText">
+        enregister
+      </b-button>
+      <b-button @click="changePresentation = false"> annuler </b-button>
+    </div>
   </div>
 </template>
 
 <script>
-//import Message from "@/components/messages/Message.vue"
 import TinyEditor from "@/components/TinyEditor.vue";
-//import axios from "@/DAL/myAxios";
-//import libUser from "@/DAL/libUser";
 
 export default {
   name: "PrivateInfo",
@@ -74,14 +82,12 @@ export default {
     return {
       userInfo: Object.assign({}, this.user),
       changeAvatar: false,
-      file: null,
-      changed: false,
+      changePresentation: false,
+      AvatarFile: null,
+      changedPresentation: false,
     };
   },
   computed: {
-    /*     userInfo() {
-      return this.user
-    }, */
     avatarURL() {
       return "Avatar/" + this.userInfo.avatar;
     },
@@ -93,37 +99,26 @@ export default {
   },
   methods: {
     updateRegisterData() {
-      this.changeAvatar = false;
       this.$store.commit("setMainPage", {
         component: "Register",
         props: { user: this.userInfo },
       });
     },
-    saveText() {
-      //      console.log('saveText : ' +this.$refs.presentation.editor.isDirty())
+    async saveText() {
       this.userInfo.presentation = this.$refs.presentation.editor.getContent();
-
-      axios
-        .post("/user/update/", { presentation: this.userInfo.presentation })
-        .then((response) => {
-          if (typeof response.data === "object") {
-            this.changeAvatar = false;
-            this.$emit("updateUser", response.data);
-          } else {
-            console.log(response);
-          }
-        })
-        .catch((erreur) => {
-          console.log(erreur);
-        });
+      const newUser = await this.$store.dispatch("updateUser", this.userInfo);
+      if (newUser) {
+        this.$emit("changedUser", newUser);
+        this.changePresentation = false;
+      }
     },
 
-    loadAvatar(file) {
+    loadAvatar(AvatarFile) {
       if (!this.img) {
         this.img = new Image();
         this.ctx = this.$refs.preview.getContext("2d");
       }
-      createImageBitmap(file).then((img) => {
+      createImageBitmap(AvatarFile).then((img) => {
         this.img = img;
         this.refreshCanvas();
       });
@@ -141,13 +136,19 @@ export default {
       this.ctx.drawImage(this.img, 0, 0);
     },
 
-    async saveAvatar() {
-      this.$refs.preview.toBlob((blob) => {
+    saveAvatar() {
+      this.$refs.preview.toBlob(async (blob) => {
         var formData = new FormData();
         formData.append("avatar", blob);
-        this.$store.dispatch("newAvatar", formData);
+
+        // in dev mod only, vscode reload the application
+        // due to back write a file in public/Avatar
+        const newUser = await this.$store.dispatch("newAvatar", formData);
+        if (newUser) {
+          this.$emit("changedUser", newUser);
+          this.changeAvatar = false;
+        }
       }, "image/jpeg");
-      alert("save");
     },
   },
 };
@@ -163,5 +164,9 @@ export default {
 .presentation {
   text-align: left;
   padding-top: "2em";
+}
+
+b-button {
+  margin: "1em";
 }
 </style>

@@ -23,20 +23,20 @@ module.exports = function (refDBNodes) {
   const verif = utils.makeVerif('user', dataAuth) // from front => Object
  */
   const initUser = {
-    avatar : "default.png",
+    avatar: "default.png",
     auth: 1,
     nbReport: 0,
     nbVote: 1,
     nbResponse: 0,
-    interest:[0,0,1],
-    report:[0,0,0,0,0],
+    interest: [0, 0, 1],
+    report: [0, 0, 0, 0, 0],
     minInterest: 44,
     maxInterest: 89,
   }
   Object.freeze(initUser)
 
   const createReq =
-  `CREATE (user : User $pubProps) -[:PRIVATE]-> (private : PrivateUser $privProps),
+    `CREATE (user : User $pubProps) -[:PRIVATE]-> (private : PrivateUser $privProps),
     (user) -[:TEXT]-> (:Text {text:''})
   SET user.id = toInteger( user.id), user.auth = toInteger( user.auth)
   RETURN user, private`
@@ -46,16 +46,16 @@ module.exports = function (refDBNodes) {
     privProps: {},
   }
 
-  async function create (user) {
+  async function create(user) {
     createParam.privProps = user.priv
-    delete( user.priv)
+    delete (user.priv)
     createParam.pubProps = Object.assign({}, initUser, user)
     createParam.pubProps.id = createParam.privProps.id = user.id || getUID()
 
     createParam.privProps.passwordLength = createParam.privProps.password.length
-    createParam.privProps.password = 
-      passwordHash.generate( createParam.privProps.password)
-    
+    createParam.privProps.password =
+      passwordHash.generate(createParam.privProps.password)
+
     const result = await Neo4jRequest.writeOneRow(createReq, createParam)
     //    refDBNodes.Message.createPresentation()
     //    const userOut = read(result)
@@ -72,7 +72,7 @@ module.exports = function (refDBNodes) {
     pseudo: '',
     sub: []
   }
-  async function findOne (reader, pseudo, text) {
+  async function findOne(reader, pseudo, text) {
 
     findOneParam.pseudo = pseudo
     findOneParam.sub = []
@@ -83,7 +83,7 @@ module.exports = function (refDBNodes) {
     if (reader.pseudo === pseudo) {
       findOneParam.sub.push('PRIVATE')
     }
-    if( text) {
+    if (text) {
       findOneParam.sub.push('TEXT')
     }
     const result = await Neo4jRequest.readOneRow(findOneReq, findOneParam)
@@ -105,9 +105,9 @@ module.exports = function (refDBNodes) {
     text: {},
   }
 
-  async function update (user, data) {
+  async function update(user, data) {
     updateParam.privProps = {}
-    if( data.priv) {
+    if (data.priv) {
       if (data.priv.password) {
         updateParam.privProps.passwordLength = user.priv.password.length
         updateParam.privProps.password = passwordHash.generate(user.priv.password)
@@ -119,31 +119,30 @@ module.exports = function (refDBNodes) {
     }
 
     if (typeof data.presentation === 'string') {
-      updateParam.text = {text: data.presentation }
+      updateParam.text = { text: data.presentation }
     } else {
       updateParam.text = {}
     }
-    delete data.presentation 
+    delete data.presentation
     updateParam.pubProps = data
-
     updateParam.pseudo = user.pseudo
     const result = await Neo4jRequest.writeOneRow(updateReq, updateParam)
     return formatResult(result)
   }
 
-  function formatResult (result) {
+  function formatResult(result) {
     delete result.id
     if (result && result.private) {
       delete result.private.password
     }
-    if( result.text) {
+    if (result.text) {
       result.presentation = result.text.text
       delete result.text
     }
     return result
   }
 
-  async function authenticate (pseudo, password) {
+  async function authenticate(pseudo, password) {
     console.log(`authenticate : ${pseudo}`)
 
     findOneParam.pseudo = pseudo
@@ -154,8 +153,8 @@ module.exports = function (refDBNodes) {
       delete result.private.password
       if (passwordHash.verify(password, bdPassword)) {
         return result
-      } else return ( 'password' )
-    } else return ( 'pseudo' )
+      } else return ('password')
+    } else return ('pseudo')
   }
 
   refDBNodes.User = {
