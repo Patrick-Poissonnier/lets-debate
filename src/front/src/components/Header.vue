@@ -8,8 +8,8 @@
         :style="{ margin: '1em' }"
         @click="
           $store.commit('setMainPage', {
-            component: 'Debate',
-            props: { id: 1 },
+            component: 'Home',
+            props: {},
           })
         "
       />

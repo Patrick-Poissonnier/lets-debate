@@ -1,7 +1,6 @@
 
 const express = require('express')
 var cors = require('cors')
-const bodyParser = require('body-parser')
 const security = require('./security')
 var cookieParser = require('cookie-parser')
 const { corsOrigin } = require('./config/config')
@@ -13,7 +12,8 @@ app.use(cors({
   origin: [corsOrigin],
   credentials: true
 }))
-app.use(bodyParser.urlencoded({ extended: true }), bodyParser.json())
+app.use(express.urlencoded({ extended: true }))
+app.use(express.json())
 app.use(cookieParser())
 app.use(security)
 

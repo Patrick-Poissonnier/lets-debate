@@ -1,199 +1,74 @@
 <template>
-  <div v-if="message" class="gridMessage">
+  <div class="gridMessage">
     <div :class="responseType" :style="messageStyle" :key="message.id">
-      <div class="gridEntete">
-        <div class="avatar">
-          <AuthorAvatar
-            :pseudo="message.authorPseudo"
-            :interest="true"
-            :responseType="message.responseType"
-          />
-        </div>
-        <div class="title">
-          <div v-if="isChild" class="titleText">
-            <a
-              :href="uri('Debate', { id: message.id })"
-              @click.prevent="goChild"
-            >
-              <span v-html="message.text.title" />
-            </a>
-          </div>
-          <div v-else class="titleText" v-html="message.text.title" />
-          <div
-            v-if="message.text.adminText"
-            class="adminText"
-            v-html="message.text.adminText"
-          ></div>
-          <div
-            v-if="message.text.resume"
-            class="textResume"
-            v-html="message.text.resume"
-          ></div>
-        </div>
-        <div class="right">
-          <div class="rightButton">
-            <b-button
-              v-if="isAdmin"
-              @click="showWriteMessage(message)"
-              variant="outline-primary"
-              size="sm"
-              >Admin</b-button
-            >
-            <b-button
-              v-if="showText"
-              style="text-align: 'right'"
-              @click="showText = false"
-              variant="outline-primary"
-              size="sm"
-            >
-              -</b-button
-            >
-            <b-button
-              v-else
-              @click="showText = true"
-              variant="outline-primary"
-              size="sm"
-              >+</b-button
-            >
-          </div>
+      <MessageHeader
+        class="messageHeader"
+        :message="message"
+        :showText="showText"
+        @changeShowText="showText = !showText"
+        @titleClicked="titleClicked"
+        @goUserInfo="goUserInfo"
+        @actionWriteMessage="showWriteMessage"
+      />
 
-          <div v-if="isType(message.type, 'evaluate')">
-            <BarEval :obj="message" :interest="true" :agree="true" />
-          </div>
-          <div v-if="isType(message.type, 'report')">
-            <b-img
-              :style="styleImgReport"
-              :id="message.id + 'popover-report'"
-              src="/logo/signe-attention.png"
-              width="32"
-            />
-            <b-popover
-              :target="message.id + 'popover-report'"
-              triggers="hover"
-              placement="bottom"
-            >
-              <template #title>Signalements :</template>
-              <b>
-                <div
-                  v-for="(item, key) in reportChoice"
-                  :variant="item.variant"
-                  :key="key"
-                  :id="key"
-                  :style="{ color: item.color }"
-                >
-                  <div v-if="item.value">
-                    <div class="tabReport">
-                      <div>{{ item.text }} :</div>
-                      <div>{{ message.report[key] || 0 }}</div>
-                    </div>
-                  </div>
-                </div>
-              </b>
-            </b-popover>
-          </div>
-        </div>
+      <AuthorAvatar
+        class="left avatar"
+        :pseudo="message.authorPseudo"
+        :interest="true"
+        :responseType="message.responseType"
+      />
+      <div v-if="isType(message.type, 'evaluate')" class="right">
+        <BarEval :obj="message" :interest="true" :agree="true" />
+        <Report :message="message" class="report" height="32" />
       </div>
-      <div v-if="showText" v-html="message.text.text"></div>
 
-      <div v-if="!isChild" class="bottom">
-        <span> {{ message.nbResponse }} réponses. triés par : </span>
-        <b-dropdown
-          :text="tabSort[sortedBy]"
-          variant="outline-primary"
-          size="sm"
-        >
-          <b-dropdown-item-button @click="sortBy(1)">{{
-            tabSort[1]
-          }}</b-dropdown-item-button>
-          <b-dropdown-item-button @click="sortBy(2)">{{
-            tabSort[2]
-          }}</b-dropdown-item-button>
-          <b-dropdown-item-button @click="sortBy(3)">{{
-            tabSort[3]
-          }}</b-dropdown-item-button> </b-dropdown
-        >&nbsp;
-        <b-button
-          v-if="
-            isType(message.type, 'evaluate') || isType(message.type, 'report')
-          "
-          id="evaluate-btn"
-          variant="outline-primary"
-          size="sm"
-          @click="
-            connected && chowModalEvaluate({ message, callBack: cbNewVote })
-          "
-        >
-          Evaluer </b-button
-        >&nbsp;
-        <b-popover
-          v-if="
-            isType(message.type, 'evaluate') ||
-            (isType(message.type, 'report') && !connected)
-          "
-          target="evaluate-btn"
-          placement="top"
-          triggers="hover"
-        >
-          Vous devez vous connecter d'abord
-        </b-popover>
-        <b-button
-          v-if="replyAllowed"
-          id="reply-btn"
-          variant="outline-primary"
-          size="sm"
-          @click="showWriteMessage()"
-        >
-          répondre </b-button
-        >&nbsp;
-        <b-popover
-          v-if="replyAllowed && !connected"
-          target="reply-btn"
-          placement="top"
-          triggers="hover"
-        >
-          Vous devez vous connecter d'abord
-        </b-popover>
-        <b-popover
-          v-if="replyAllowed && connected && !message.myVote"
-          target="reply-btn"
-          placement="top"
-          triggers="hover"
-          >> Vous devez évaluer ce message<br />avant d'y répondre
-        </b-popover>
-        <b-button
-          v-if="message.parentId"
-          variant="outline-primary"
-          size="sm"
-          @click="goParent"
-        >
-          retour </b-button
-        >&nbsp;
+      <div class="textMessage">
+        <div
+          v-if="message.text.adminText"
+          class="adminText"
+          v-html="message.text.adminText"
+        ></div>
+        <div
+          v-if="message.text.resume"
+          class="textResume"
+          v-html="message.text.resume"
+        ></div>
+        <div v-if="showText" v-html="message.text.text"></div>
       </div>
-      <div v-else class="bottom">
-        <span> {{ message.nbResponse }} réponses. </span>
-        <b-button variant="outline-primary" @click="goChild" size="sm">
-          Entrer
-        </b-button>
+      <div class="bottom">
+        <MessageFooter
+          :message="message"
+          :index="index"
+          :sortedBy="sortedBy"
+          @changeSortBy="changeSortBy"
+          @actionInOut="actionInOut"
+          @actionEvaluate="chowModalEvaluate({ message, callBack: cbNewVote })"
+          @actionWriteMessage="showWriteMessage"
+        />
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { isType } from "@/config/typesMessage.js";
-
+import MessageHeader from "@/components/messages/MessageHeader";
+import MessageFooter from "@/components/messages/MessageFooter";
 import AuthorAvatar from "@/components/auth/AuthorAvatar.vue";
 import BarEval from "@/components/BarEval.vue";
-import { reportChoice, evaluatChoice } from "@/config/evaluat.js";
+import Report from "@/components/messages/Report";
 
-const tabSort = ["", "Interêt", "meilleurs soutients", "meilleurs opposants"];
+import { reportChoice, evaluatChoice } from "@/config/evaluat.js";
+import { isType } from "@/config/typesMessage.js";
 
 export default {
   name: "Message",
   props: ["message", "index"],
   components: {
+    MessageHeader,
+    MessageFooter,
     AuthorAvatar,
     BarEval,
+    Report,
   },
   inject: ["chowModalEvaluate", "modalWriteMessage"],
 
@@ -201,17 +76,15 @@ export default {
     return {
       showText: typeof this.index !== "number",
       sortedBy: this.$store.getters.getSortIndex,
-      isChild: typeof this.index === "number",
     };
   },
 
   created: function () {
-    this.isType = isType; // no vue reactivity
+    // no vue reactivity
+    this.isChild = typeof this.index === "number";
+    this.isType = isType;
     this.reportChoice = reportChoice;
-    this.tabSort = tabSort;
   },
-
-  beforeUpdate: function () {},
 
   computed: {
     isAdmin() {
@@ -220,17 +93,11 @@ export default {
     connected() {
       return this.$store.getters.getConnectedUser.pseudo;
     },
-    replyAllowed() {
-      return this.isAdmin || isType(this.message.type, "reply");
-    },
-    styleImgReport() {
-      if (this.showText) return { display: "block", margin: "1em auto" };
-      else return { display: "none" };
-    },
 
     messageStyle() {
       return {
-        margin: "0.5em 0.5em 0 0.5em",
+        margin: "0em 0.5em 0 0.5em",
+        paddingTop: "0.5em",
         borderStyle: "none none none solid",
         borderColor: this.bgColor(
           this.message.myVote && this.message.myVote.vote
@@ -259,8 +126,15 @@ export default {
   },
 
   methods: {
+    goUserInfo(pseudo) {
+      this.$store.commit("setMainPage", {
+        component: "UserInfo",
+        props: { pseudo },
+      });
+    },
     showWriteMessage(message) {
-      if (this.connected && this.message.myVote !== null) {
+      //      console.log("showWriteMessage" + message.id);
+      if (this.connected) {
         this.editedMessage = message;
         this.modalWriteMessage({
           message,
@@ -269,19 +143,35 @@ export default {
         });
       }
     },
-
-    bgColor(value) {
-      return evaluatChoice[value || 0];
+    changeSortBy(input) {
+      this.sortedBy = input;
+      this.$store.dispatch("setChildsSort", input);
+    },
+    actionInOut() {
+      if (this.isChild) {
+        this.goChild();
+      } else {
+        this.goParent();
+      }
+    },
+    titleClicked() {
+      //      console.log("titleClicked");
+      if (this.isChild) {
+        this.goChild();
+      } else {
+        document.querySelector(".debate").scrollTop = 0;
+      }
     },
     goChild() {
+      //      console.log("goChild");
       this.$store.dispatch("goChild", this.index);
     },
     goParent() {
       this.$store.dispatch("goAncestor", -1);
     },
-    sortBy(index) {
-      this.sortedBy = index;
-      this.$store.dispatch("setChildsSort", index);
+
+    bgColor(value) {
+      return evaluatChoice[value || 0];
     },
     uri(component, props) {
       return `http:${component}?${JSON.stringify(props)}`;
@@ -301,62 +191,76 @@ export default {
   },
 };
 </script>
+
+<style>
+.btn {
+  margin-left: 0.5em;
+}
+</style>
+
 <style scoped>
+.left {
+  float: left;
+  min-width: 90px;
+  text-align: center;
+}
+
+.avatar {
+  max-width: 90px;
+}
+
+.right {
+  clear: right;
+  float: right;
+  width: 100px;
+  margin: 0 0.5em;
+}
+.report {
+  margin: 0.5em;
+  text-align: center;
+}
+.mainMessage .messageHeader {
+  position: sticky;
+}
+
 .gridMessage {
+  padding-top: 0.5em;
   display: grid;
   grid-template-columns: repeat(20, 1fr);
   grid-gap: 0px;
 }
 .gridParent {
   grid-column-start: span 20;
+  position: relative;
 }
 .gridAgree {
   grid-column-start: span 18;
   grid-column-end: 19;
+  position: relative;
 }
 .gridNone {
   grid-column-start: span 18;
   grid-column-end: 20;
+  position: relative;
 }
 .gridDisagree {
   grid-column-start: span 18;
   grid-column-end: 21;
+  position: relative;
 }
-
-.gridEntete {
-  display: grid;
-  grid-template-columns: 90px 1fr 128px;
-  grid-gap: 5px;
+.textMessage {
+  padding-bottom: 1.5em;
 }
-
-.right {
-  margin: 0.5em;
-}
-.rightButton {
-  text-align: right;
-}
-.tabReport {
-  display: grid;
-  grid-template-columns: 100px 40px;
-}
-
-.evaluate {
-  margin: 0.5em;
-}
-
 .adminText {
   text-align: left;
   font-weight: bold;
   color: orangered;
 }
-.titleText {
-  font-size: 1.4em;
-  font-weight: bold;
-}
 .bottom {
-  text-align: center;
-}
-button {
-  margin: 0.5em;
+  position: absolute;
+  bottom: 0.5em;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
 }
 </style>

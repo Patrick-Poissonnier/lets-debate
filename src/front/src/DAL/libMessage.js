@@ -182,6 +182,7 @@ const updateVote = async function (data) {
   }
 }
 
+//TODO : factirize requests
 const getChildsList = async function (parentId, start, index, fnStore) {
   //  console.log( "getChildList " +parentId)
   const data = { parentId, start, index }

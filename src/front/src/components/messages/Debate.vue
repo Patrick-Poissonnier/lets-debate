@@ -1,19 +1,9 @@
 <template>
-  <div v-if="message" :key="pseudo + id" class="debate">
+  <div v-if="message" :key="pseudo + id">
     <Ancestors />
-    <div
-      :style="{
-        margin: '0 0 0 1em',
-        borderStyle: 'none',
-        borderTopWidth: '0',
-        borderLeftWidth: '1em',
-        borderBottomWidth: '0',
-        borderRightWidth: '0',
-        borderColor: colorVote,
-      }"
-    >
-      <Message :message="message" :index="null" />
-      <ListMessage :parent="message" />
+    <div class="debate">
+      <Message :message="message" :index="null" class="mainMessage" />
+      <ListMessage :parent="message" class="ChildMessage" />
     </div>
   </div>
 </template>
@@ -65,6 +55,7 @@ export default {
 
 <style scoped>
 .debate {
+  margin: 0 0 0 0.5em;
   max-height: calc(100vh - 75px) !important;
   height: 100%;
   overflow-y: scroll;
